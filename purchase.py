@@ -2,11 +2,12 @@
 # this repository contains the full copyright notices and license terms.
 from decimal import Decimal
 from itertools import chain
+from sql import Null
+from sql.conditionals import Case
 
 from trytond.pool import PoolMeta, Pool
 from trytond.pyson import Eval, Bool, If
-from trytond.model import Workflow, ModelView, fields, ModelSQL, \
-        sequence_ordered
+from trytond.model import Workflow, ModelView, fields, ModelSQL
 from trytond.wizard import Wizard
 from trytond.transaction import Transaction
 from trytond.tools import grouped_slice
@@ -350,7 +351,7 @@ class PurchaseRequisition(Workflow, ModelSQL, ModelView):
             for l in self.lines for r in l.purchase_requests)
 
 
-class PurchaseRequisitionLine(sequence_ordered(), ModelSQL, ModelView):
+class PurchaseRequisitionLine(ModelSQL, ModelView):
     "Purchase Requisition Line"
     __name__ = 'purchase.requisition.line'
     _states = {
@@ -361,6 +362,7 @@ class PurchaseRequisitionLine(sequence_ordered(), ModelSQL, ModelView):
     requisition = fields.Many2One(
         'purchase.requisition', 'Requisition',
         ondelete='CASCADE', select=True, required=True)
+    sequence = fields.Integer('Sequence')
     supplier = fields.Many2One(
         'party.party', 'Supplier', states=_states, depends=_depends)
     product = fields.Many2One(
@@ -411,6 +413,16 @@ class PurchaseRequisitionLine(sequence_ordered(), ModelSQL, ModelView):
         'on_change_with_purchase_requisition_state')
 
     del _states
+
+    @classmethod
+    def __setup__(cls):
+        super(PurchaseRequisitionLine, cls).__setup__()
+        cls._order.insert(0, ('sequence', 'ASC'))
+
+    @staticmethod
+    def order_sequence(tables):
+        table, _ = tables[None]
+        return [Case((table.sequence == Null, 0), else_=1), table.sequence]
 
     @fields.depends('requisition', '_parent_requisition.state')
     def on_change_with_purchase_requisition_state(self, name=None):

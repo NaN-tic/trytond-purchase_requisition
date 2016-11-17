@@ -59,7 +59,6 @@ this repository contains the full copyright notices and license terms.
             <field name="name">Draft</field>
             <field name="sequence" eval="10"/>
             <field name="domain" eval="[('state', '=', 'draft')]" pyson="1"/>
-            <field name="count" eval="True"/>
             <field name="act_window" ref="act_purchase_requisition_form"/>
         </record>
         <record model="ir.action.act_window.domain"
@@ -67,7 +66,6 @@ this repository contains the full copyright notices and license terms.
             <field name="name">Waiting</field>
             <field name="sequence" eval="20"/>
             <field name="domain" eval="[('state', '=', 'waiting')]" pyson="1"/>
-            <field name="count" eval="True"/>
             <field name="act_window" ref="act_purchase_requisition_form"/>
         </record>
         <record model="ir.action.act_window.domain"
@@ -76,7 +74,6 @@ this repository contains the full copyright notices and license terms.
             <field name="sequence" eval="30"/>
             <field name="domain"
                 eval="[('state', 'in', ['approved', 'processing'])]" pyson="1"/>
-            <field name="count" eval="True"/>
             <field name="act_window" ref="act_purchase_requisition_form"/>
         </record>
         <record model="ir.action.act_window.domain"
@@ -113,7 +110,7 @@ this repository contains the full copyright notices and license terms.
         <record model="ir.action-res.group"
             id="act_open_purchase_request_form_group_purchase_request">
             <field name="action" ref="act_open_purchase_request_form"/>
-            <field name="group" ref="purchase_request.group_purchase_request"/>
+            <field name="group" ref="stock_supply.group_purchase_request"/>
         </record>
 
         <record model="ir.action.act_window"
@@ -133,7 +130,7 @@ this repository contains the full copyright notices and license terms.
         <record model="ir.action-res.group"
             id="act_open_purchase_request_form2_group_purchase_request">
             <field name="action" ref="act_open_purchase_request_form2"/>
-            <field name="group" ref="purchase_request.group_purchase_request"/>
+            <field name="group" ref="stock_supply.group_purchase_request"/>
         </record>
 
         <record model="ir.ui.view" id="purchase_requisition_line_view_form">
@@ -250,7 +247,7 @@ this repository contains the full copyright notices and license terms.
         <record model="ir.rule.group-res.group"
             id="rule_group_requisition_group_purchase_request">
             <field name="rule_group" ref="rule_group_requisition"/>
-            <field name="group" ref="purchase_request.group_purchase_request"/>
+            <field name="group" ref="stock_supply.group_purchase_request"/>
         </record>
         <record model="ir.rule.group-res.group"
             id="rule_group_requisition_group_purchase">
@@ -292,7 +289,7 @@ this repository contains the full copyright notices and license terms.
         <record model="ir.rule.group-res.group"
             id="rule_group_requisition_line_group_purchase_request">
             <field name="rule_group" ref="rule_group_requisition_line"/>
-            <field name="group" ref="purchase_request.group_purchase_request"/>
+            <field name="group" ref="stock_supply.group_purchase_request"/>
         </record>
         <record model="ir.rule.group-res.group"
             id="rule_group_requisition_line_group_purchase">
@@ -330,7 +327,7 @@ this repository contains the full copyright notices and license terms.
             <field name="model"
                 search="[('model', '=', 'purchase.requisition')]"/>
             <field name="group"
-                ref="purchase_request.group_purchase_request"/>
+                ref="stock_supply.group_purchase_request"/>
             <field name="perm_read" eval="True"/>
         </record>
 
@@ -364,7 +361,7 @@ this repository contains the full copyright notices and license terms.
             <field name="model"
                 search="[('model', '=', 'purchase.requisition.line')]"/>
             <field name="group"
-                ref="purchase_request.group_purchase_request"/>
+                ref="stock_supply.group_purchase_request"/>
             <field name="perm_read" eval="True"/>
         </record>
 
