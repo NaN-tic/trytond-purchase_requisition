@@ -7,28 +7,49 @@ Imports::
     >>> import datetime
     >>> from dateutil.relativedelta import relativedelta
     >>> from decimal import Decimal
-    >>> from proteus import Model, Wizard
-    >>> from trytond.tests.tools import activate_modules
-    >>> from trytond.modules.company.tests.tools import (create_company,
-    ...     get_company)
-    >>> from trytond.modules.account.tests.tools import (create_chart,
-    ...     get_accounts)
+    >>> from operator import attrgetter
+    >>> from proteus import config, Model, Wizard, Report
+    >>> from trytond.modules.company.tests.tools import create_company, \
+    ...     get_company
+    >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
+    ...     create_chart, get_accounts, create_tax
+    >>> from trytond.modules.account_invoice.tests.tools import \
+    ...     set_fiscalyear_invoice_sequences, create_payment_term
     >>> today = datetime.date.today()
 
-Activate purchase_requisition Module::
+Create database::
 
-    >>> config = activate_modules(['purchase_requisition'])
+    >>> config = config.set_trytond()
+    >>> config.pool.test = True
+
+Install purchase_requisition Module::
+
+    >>> Module = Model.get('ir.module')
+    >>> module, = Module.find([('name', '=', 'purchase_requisition')])
+    >>> module.click('install')
+    >>> Wizard('ir.module.install_upgrade').execute('upgrade')
 
 Create company::
 
     >>> _ = create_company()
     >>> company = get_company()
 
+Reload the context::
+
+    >>> User = Model.get('res.user')
+    >>> Group = Model.get('res.group')
+    >>> config._context = User.get_preferences(True, config.context)
+
 Create chart of accounts::
 
     >>> _ = create_chart(company)
     >>> accounts = get_accounts(company)
     >>> expense = accounts['expense']
+
+Create payment term::
+
+    >>> payment_term = create_payment_term()
+    >>> payment_term.save()
 
 Create purchase requisition user::
 
@@ -239,6 +260,7 @@ Handle request exception::
 Confirm the purchase order::
 
     >>> purchase, = Purchase.find([('state', '=', 'draft')])
+    >>> purchase.payment_term = payment_term
     >>> purchase.click('quote')
     >>> requisition.reload()
     >>> requisition.state
@@ -275,10 +297,12 @@ Create purchase requisition with two different suppliers::
     >>> requisition.employee = requisition_user.employee
     >>> requisition.supply_date = today
     >>> requisition_line = requisition.lines.new()
+    >>> requisition_line.product = product
     >>> requisition_line.description = 'Description'
     >>> requisition_line.quantity = 4.0
     >>> requisition_line.supplier = supplier
     >>> requisition_line = requisition.lines.new()
+    >>> requisition_line.product = product
     >>> requisition_line.description = 'Description2'
     >>> requisition_line.quantity = 2.0
     >>> requisition_line.supplier = supplier2
@@ -300,6 +324,7 @@ Create purchase requisition with two different suppliers::
     ...         ('state', '=', 'draft'),
     ...         ('party', '=', supplier.id),
     ...         ])
+    >>> purchase.payment_term = payment_term
     >>> purchase.click('cancel')
     >>> requisition.reload()
     >>> requisition.state
@@ -308,6 +333,7 @@ Create purchase requisition with two different suppliers::
     ...         ('state', '=', 'draft'),
     ...         ('party', '=', supplier2.id),
     ...         ])
+    >>> purchase.payment_term = payment_term
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> requisition.reload()

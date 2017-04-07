@@ -6,8 +6,8 @@ import doctest
 
 from trytond.tests.test_tryton import ModuleTestCase
 from trytond.tests.test_tryton import suite as test_suite
-from trytond.tests.test_tryton import doctest_teardown
-from trytond.tests.test_tryton import doctest_checker
+from trytond.tests.test_tryton import (doctest_setup, doctest_teardown,
+    doctest_checker)
 
 
 class PurchaseRequisitionTestCase(ModuleTestCase):
@@ -21,7 +21,7 @@ def suite():
             PurchaseRequisitionTestCase))
     suite.addTests(doctest.DocFileSuite(
             'scenario_purchase_requisition.rst',
-            tearDown=doctest_teardown, encoding='utf-8',
-            checker=doctest_checker,
-            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
+            setUp=doctest_setup, tearDown=doctest_teardown, encoding='UTF-8',
+            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE,
+            checker=doctest_checker))
     return suite
