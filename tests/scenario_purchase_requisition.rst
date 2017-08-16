@@ -324,6 +324,7 @@ Create purchase requisition then cancel::
     >>> requisition_line = requisition.lines.new()
     >>> requisition_line.description = 'Description'
     >>> requisition_line.quantity = 4.0
+    >>> requisition_line.product = product
     >>> requisition.click('cancel')
     >>> requisition.state
     u'cancel'
@@ -338,6 +339,7 @@ Create purchase requisition, wait then reject::
     >>> requisition_line = requisition.lines.new()
     >>> requisition_line.description = 'Description'
     >>> requisition_line.quantity = 4.0
+    >>> requisition_line.product = product
     >>> requisition.click('wait')
     >>> requisition.state
     u'waiting'
