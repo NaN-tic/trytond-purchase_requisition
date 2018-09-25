@@ -111,7 +111,8 @@ Create product::
 
 Create purchase requisition without product and description::
 
-    >>> config.user = requisition_user.id
+    >>> config._context = User.get_preferences(True, config.context)
+    >>> config._context['user'] = requisition_user.id
     >>> PurchaseRequisition = Model.get('purchase.requisition')
     >>> requisition = PurchaseRequisition()
     >>> requisition.description = 'Description'
@@ -122,7 +123,7 @@ Create purchase requisition without product and description::
     >>> requisition_line.description = None
     >>> requisition_line.supplier = supplier
     >>> requisition_line.price = 10.0
-    >>> requisition.click('wait')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> requisition.save() # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     UserError: ...
@@ -130,7 +131,7 @@ Create purchase requisition without product and description::
 Create purchase requisition without product and quantity::
 
     >>> requisition_line.description = 'Description'
-    >>> requisition.click('wait')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> requisition.save() # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     UserError: ...
@@ -141,7 +142,8 @@ Create purchase requisition with product goods and without warehouse::
     >>> requisition_line.product = product
     >>> requisition_line.description = 'Requisition Test'
     >>> requisition_line.quantity = 2.0
-    >>> requisition.click('wait')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> requisition.save() 
+    >>> PurchaseRequisition.wait([requisition], config.context) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     UserError: ...
@@ -151,7 +153,8 @@ Create purchase requisition with supplier and price::
     >>> Location = Model.get('stock.location')
     >>> warehouse_loc, = Location.find([('code', '=', 'WH')])
     >>> requisition.warehouse = warehouse_loc
-    >>> requisition.click('wait')
+    >>> requisition.save()
+    >>> PurchaseRequisition.wait([requisition], config.context)
     >>> requisition.state
     u'waiting'
 
@@ -159,7 +162,7 @@ Approve workflow by requisition user raise an exception because he's not in
 approval_group::
 
     >>> config.user = requisition_user.id
-    >>> requisition.click('approve')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> PurchaseRequisition.approve([requisition], config.context) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     UserError: ...
@@ -176,7 +179,7 @@ approval_group::
 Approve workflow with user in approval_group::
 
     >>> config.user = requisition_approval_user.id
-    >>> requisition.click('approve')
+    >>> requisition.click('approve') 
     >>> requisition.state
     u'processing'
 

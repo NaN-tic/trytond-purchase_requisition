@@ -50,7 +50,7 @@ class Configuration:
         return super(Configuration, cls).multivalue_model(field)
 
     @classmethod
-    def default_purchase_requisition_sequence(cls):
+    def default_purchase_requisition_sequence(cls, **pattern):
         return cls.multivalue_model('purchase_requisition_sequence'
             ).default_purchase_requisition_sequence()
 
@@ -156,7 +156,8 @@ class PurchaseRequisition(Workflow, ModelSQL, ModelView):
         states=_states, depends=_depends)
     state = fields.Selection(STATES, 'State', readonly=True, required=True)
 
-    del _states
+    #del _states
+
 
     @classmethod
     def __setup__(cls):
@@ -492,7 +493,7 @@ class PurchaseRequisitionLine(sequence_ordered(), ModelSQL, ModelView):
                 self.description = Product(self.product.id).rec_name
 
     @fields.depends('quantity', 'unit_price', 'unit',
-        '_parent_requisition.currency')
+        '_parent_requisition.currency', 'requisition',)
     def on_change_with_amount(self, name=None):
         if (self.unit_price is None) or (self.quantity is None):
             return None
