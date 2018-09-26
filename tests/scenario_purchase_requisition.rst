@@ -12,7 +12,7 @@ Imports::
     >>> from trytond.modules.company.tests.tools import (create_company,
     ...     get_company)
     >>> from trytond.modules.account.tests.tools import (create_chart,
-    ...     get_accounts)
+    ...     get_accounts, create_tax)
     >>> today = datetime.date.today()
 
 Activate purchase_requisition Module::
@@ -29,6 +29,7 @@ Create chart of accounts::
     >>> _ = create_chart(company)
     >>> accounts = get_accounts(company)
     >>> expense = accounts['expense']
+    >>> revenue = accounts['revenue']
 
 Create purchase requisition user::
 
@@ -90,6 +91,24 @@ Create supplier::
     >>> supplier2 = Party(name='Supplier2')
     >>> supplier2.save()
 
+Create tax::
+
+    >>> tax = create_tax(Decimal('.10'))
+    >>> tax.save()
+
+Create account categories::
+
+    >>> ProductCategory = Model.get('product.category')
+    >>> account_category = ProductCategory(name="Account Category")
+    >>> account_category.accounting = True
+    >>> account_category.account_expense = expense
+    >>> account_category.account_revenue = revenue
+    >>> account_category.save()
+
+    >>> account_category_tax, = account_category.duplicate()
+    >>> account_category_tax.supplier_taxes.append(tax)
+    >>> account_category_tax.save()
+
 Create product::
 
     >>> ProductUom = Model.get('product.uom')
@@ -101,10 +120,10 @@ Create product::
     >>> template.name = 'Product'
     >>> template.default_uom = unit
     >>> template.type = 'goods'
+    >>> template.account_category = account_category_tax
     >>> template.list_price = Decimal('20')
     >>> template.cost_price = Decimal('8')
     >>> template.purchasable = True
-    >>> template.account_expense = expense
     >>> template.save()
     >>> product.template = template
     >>> product.save()
@@ -156,7 +175,7 @@ Create purchase requisition with supplier and price::
     >>> requisition.save()
     >>> PurchaseRequisition.wait([requisition], config.context)
     >>> requisition.state
-    u'waiting'
+    'waiting'
 
 Approve workflow by requisition user raise an exception because he's not in
 approval_group::
@@ -181,7 +200,7 @@ Approve workflow with user in approval_group::
     >>> config.user = requisition_approval_user.id
     >>> requisition.click('approve') 
     >>> requisition.state
-    u'processing'
+    'processing'
 
 Create Purchase order from Request::
 
@@ -189,7 +208,7 @@ Create Purchase order from Request::
     >>> PurchaseRequest = Model.get('purchase.request')
     >>> pr, = PurchaseRequest.find([('state', '=', 'draft')])
     >>> pr.state
-    u'draft'
+    'draft'
     >>> pr.product == product
     True
     >>> pr.party == supplier
@@ -204,9 +223,9 @@ Create Purchase order from Request::
     True
     >>> create_purchase = Wizard('purchase.request.create_purchase', [pr])
     >>> pr.state
-    u'purchased'
+    'purchased'
     >>> requisition.state
-    u'processing'
+    'processing'
 
 Cancel the purchase order::
 
@@ -214,13 +233,13 @@ Cancel the purchase order::
     >>> purchase, = Purchase.find([('state', '=', 'draft')])
     >>> purchase.click('cancel')
     >>> purchase.state
-    u'cancel'
+    'cancel'
     >>> pr.reload()
     >>> pr.state
-    u'exception'
+    'exception'
     >>> requisition.reload()
     >>> requisition.state
-    u'done'
+    'done'
 
 Handle request exception::
 
@@ -228,16 +247,16 @@ Handle request exception::
     ...     'purchase.request.handle.purchase.cancellation', [pr])
     >>> handle_exception.execute('reset')
     >>> pr.state
-    u'draft'
+    'draft'
     >>> requisition.reload()
     >>> requisition.state
-    u'processing'
+    'processing'
     >>> create_purchase = Wizard('purchase.request.create_purchase', [pr])
     >>> pr.state
-    u'purchased'
+    'purchased'
     >>> requisition.reload()
     >>> requisition.state
-    u'processing'
+    'processing'
 
 Confirm the purchase order::
 
@@ -245,14 +264,14 @@ Confirm the purchase order::
     >>> purchase.click('quote')
     >>> requisition.reload()
     >>> requisition.state
-    u'processing'
+    'processing'
     >>> purchase.click('confirm')
     >>> purchase.reload()
     >>> purchase.state
-    u'confirmed'
+    'processing'
     >>> requisition.reload()
     >>> requisition.state
-    u'done'
+    'done'
 
 Try to delete requisition done::
 
@@ -306,7 +325,7 @@ Create purchase requisition with two different suppliers::
     >>> purchase.click('cancel')
     >>> requisition.reload()
     >>> requisition.state
-    u'processing'
+    'processing'
     >>> purchase, = Purchase.find([
     ...         ('state', '=', 'draft'),
     ...         ('party', '=', supplier2.id),
@@ -315,7 +334,7 @@ Create purchase requisition with two different suppliers::
     >>> purchase.click('confirm')
     >>> requisition.reload()
     >>> requisition.state
-    u'done'
+    'done'
 
 Create purchase requisition then cancel::
 
@@ -330,7 +349,7 @@ Create purchase requisition then cancel::
     >>> requisition_line.product = product
     >>> requisition.click('cancel')
     >>> requisition.state
-    u'cancel'
+    'cancel'
 
 Create purchase requisition, wait then reject::
 
@@ -345,9 +364,9 @@ Create purchase requisition, wait then reject::
     >>> requisition_line.product = product
     >>> requisition.click('wait')
     >>> requisition.state
-    u'waiting'
+    'waiting'
 
     >>> config.user = requisition_approval_user.id
     >>> requisition.click('reject')
     >>> requisition.state
-    u'rejected'
+    'rejected'
